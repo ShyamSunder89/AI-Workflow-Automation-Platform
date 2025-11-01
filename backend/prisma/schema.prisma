@@ -23,4 +23,53 @@ model Workflow {
   nodesJson   Json
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  executions  WorkflowExecution[]
+}
+
+model WorkflowExecution {
+  id            String      @id @default(cuid())
+  workflowId    String
+  workflow      Workflow    @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  status        ExecutionStatus @default(PENDING)
+  startedAt     DateTime    @default(now())
+  finishedAt    DateTime?
+  errorMessage  String?
+  nodes         NodeExecution[]
+}
+
+model NodeExecution {
+  id              String      @id @default(cuid())
+  workflowExecId  String
+  workflowExec    WorkflowExecution @relation(fields: [workflowExecId], references: [id], onDelete: Cascade)
+  nodeId          String
+  nodeName        String
+  status          NodeStatus  @default(PENDING)
+  startedAt       DateTime    @default(now())
+  finishedAt      DateTime?
+  input           Json?
+  output          Json?
+  error           String?
+}
+
+model Credentials {
+  id          String   @id @default(cuid())
+  name        String
+  type        String
+  data        Json     // Encrypted storage of credentials
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum NodeStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
 }
